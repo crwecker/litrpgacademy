@@ -12,6 +12,10 @@ export interface Book {
   coverUrl: string
   contentWarnings: string[]
   source?: 'ROYAL_ROAD' | 'AMAZON'
+  audiobookAsin?: string
+  paperbackIsbn?: string
+  hardbackIsbn?: string
+  ebookAsin?: string
   stats?: {
     followers: number
     views: {
@@ -27,6 +31,42 @@ export interface Book {
     grammar_score: number
     character_score: number
   }
+}
+
+// Amazon affiliate configuration
+const AFFILIATE_TAG = 'litrpgacademy-20'
+
+// Utility functions for building Amazon affiliate URLs
+export const buildAmazonUrl = (id: string): string => {
+  return `https://amazon.com/dp/${id}?tag=${AFFILIATE_TAG}`
+}
+
+export const buildAudibleUrl = (asin: string): string => {
+  // Audible books can be accessed via Amazon with affiliate tag
+  return `https://amazon.com/dp/${asin}?tag=${AFFILIATE_TAG}`
+}
+
+// Helper functions to get purchase URLs for a book
+export const getBookPurchaseUrls = (book: Book) => {
+  const urls: { [key: string]: string } = {}
+  
+  if (book.audiobookAsin) {
+    urls.audiobook = buildAudibleUrl(book.audiobookAsin)
+  }
+  
+  if (book.ebookAsin) {
+    urls.ebook = buildAmazonUrl(book.ebookAsin)
+  }
+  
+  if (book.paperbackIsbn) {
+    urls.paperback = buildAmazonUrl(book.paperbackIsbn)
+  }
+  
+  if (book.hardbackIsbn) {
+    urls.hardback = buildAmazonUrl(book.hardbackIsbn)
+  }
+  
+  return urls
 }
 
 export type TierLevel = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F'

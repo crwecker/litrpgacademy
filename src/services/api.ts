@@ -432,6 +432,10 @@ export interface CreateBookData {
   tags: string[]
   coverUrl?: string
   sourceUrl: string
+  audiobookAsin?: string
+  paperbackIsbn?: string
+  hardbackIsbn?: string
+  ebookAsin?: string
   source: 'ROYAL_ROAD' | 'AMAZON'
   contentWarnings: string[]
   rating?: number

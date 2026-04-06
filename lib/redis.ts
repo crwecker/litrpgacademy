@@ -37,7 +37,7 @@ export const CACHE_KEYS = {
 
 // Cache TTL (Time To Live) in seconds
 export const CACHE_TTL = {
-  BOOKS: 3600, // 1 hour
+  BOOKS: 3600 * 24, // 24 hours - refreshed daily at 3 AM UTC
   TAGS: 3600 * 24, // 24 hours (tags change less frequently)
 } as const
 
@@ -302,7 +302,7 @@ export async function getCachedAllTags(): Promise<string[] | null> {
 }
 
 /**
- * Check if cache needs refresh (older than 1 hour)
+ * Check if cache needs refresh (older than 24 hours)
  */
 export async function shouldRefreshCache(): Promise<boolean> {
   if (!redis) {
@@ -327,9 +327,9 @@ export async function shouldRefreshCache(): Promise<boolean> {
       lastUpdateTime = lastUpdate as number
     }
     
-    const oneHourAgo = Date.now() - (60 * 60 * 1000) // 1 hour in milliseconds
+    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000) // 24 hours in milliseconds
     
-    const needsRefresh = lastUpdateTime < oneHourAgo
+    const needsRefresh = lastUpdateTime < oneDayAgo
     console.log(`Cache last updated: ${new Date(lastUpdateTime)}, needs refresh: ${needsRefresh}`)
     
     return needsRefresh

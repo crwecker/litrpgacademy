@@ -23,6 +23,10 @@ model Book {
   tags            String[]
   coverUrl        String?
   sourceUrl       String
+  audiobookAsin   String?
+  paperbackIsbn   String?
+  hardbackIsbn    String?
+  ebookAsin       String?
   source          Source
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt

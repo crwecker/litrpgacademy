@@ -376,8 +376,19 @@ export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
 
 export async function fetchBookDetails(bookId: string, forceFresh: boolean = false): Promise<Book> {
   try {
-    // First check if we have the book in our database (unless forcing fresh data)
+    // First check if we have the book in cache (unless forcing fresh data)
     if (!forceFresh) {
+      console.log(`Checking cache for book details: ${bookId}`)
+      const cachedBooks = await getCachedBooksWithFallback();
+      const cachedBook = cachedBooks.find(book => book.id === bookId);
+      
+      if (cachedBook) {
+        console.log(`Found book in cache: ${cachedBook.title}`)
+        return cachedBook;
+      }
+      
+      // If not in cache, try database
+      console.log(`Book not in cache, checking database: ${bookId}`)
       const existingBook = await prisma.book.findUnique({
         where: { id: bookId },
         include: {
@@ -602,57 +613,21 @@ export async function getLitRPGBooks(): Promise<Book[]> {
   // Get popular tags dynamically
   const popularTags = await getPopularTags(12);
   
-  const books = await prisma.book.findMany({
-    where: {
-      OR: popularTags.map((tag) => ({
-        tags: {
-          hasSome: [
-            tag,
-            tag.toLowerCase(),
-            tag.toUpperCase(),
-            tag.charAt(0).toUpperCase() + tag.slice(1),
-          ],
-        },
-      })),
-    },
-    include: {
-      stats: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-      },
-    },
+  // Use cached books instead of direct database query
+  console.log('Fetching LitRPG books from cache...')
+  const allBooks = await getCachedBooksWithFallback();
+  
+  // Filter books that have any of the popular tags
+  // Cached books are already in the correct format
+  const books = allBooks.filter(book => {
+    const bookTags = book.tags.map(tag => tag.toLowerCase());
+    return popularTags.some(popularTag => {
+      const normalizedTag = popularTag.toLowerCase();
+      return bookTags.some(bookTag => bookTag.includes(normalizedTag) || normalizedTag.includes(bookTag));
+    });
   });
 
-  return books.map(book => ({
-    id: book.id,
-    title: book.title,
-    author: {
-      name: book.authorName,
-    },
-    description: book.description,
-    tags: book.tags,
-    image: book.coverUrl || "",
-    url: book.sourceUrl,
-    rating: book.stats?.[0]?.rating || 0,
-    coverUrl: book.coverUrl || "",
-    contentWarnings: book.contentWarnings || [],
-    source: book.source as 'ROYAL_ROAD' | 'AMAZON',
-    stats: {
-      followers: book.stats?.[0]?.followers || 0,
-      views: {
-        total: book.stats?.[0]?.views || 0,
-        average: book.stats?.[0]?.average_views || 0
-      },
-      pages: book.stats?.[0]?.pages || 0,
-      favorites: book.stats?.[0]?.favorites || 0,
-      ratings_count: book.stats?.[0]?.ratings_count || 0,
-      overall_score: book.stats?.[0]?.overall_score || 0,
-      style_score: book.stats?.[0]?.style_score || 0,
-      story_score: book.stats?.[0]?.story_score || 0,
-      grammar_score: book.stats?.[0]?.grammar_score || 0,
-      character_score: book.stats?.[0]?.character_score || 0
-    }
-  }));
+  return books;
 }
 
 
@@ -815,25 +790,17 @@ export async function getAuthorBooks(authorName: string): Promise<Book[]> {
     throw new Error("Author name is required");
   }
 
-  const books = await prisma.book.findMany({
-    where: {
-      authorName: {
-        equals: authorName,
-        mode: "insensitive", // Case insensitive search
-      },
-    },
-    include: {
-      stats: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-      },
-    },
-    orderBy: {
-      title: "asc",
-    },
-  });
+  // Use cached books instead of direct database query
+  console.log(`Fetching books by author "${authorName}" from cache...`)
+  const allBooks = await getCachedBooksWithFallback();
+  
+  // Filter books by author (case insensitive)
+  const authorBooks = allBooks.filter(book => 
+    book.author.name.toLowerCase() === authorName.toLowerCase()
+  );
 
-  return convertBooksToApiFormat(books);
+  // Sort by title
+  return authorBooks.sort((a, b) => a.title.localeCompare(b.title));
 }
 
 // Add these helper functions near the top with other helper functions

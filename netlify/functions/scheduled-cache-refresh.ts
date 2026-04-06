@@ -32,8 +32,8 @@ const handler: Handler = async (event, context) => {
   }
 }
 
-// Schedule the function to run every hour
+// Schedule the function to run daily at 3 AM UTC
 // Cron format: minute hour day month dayOfWeek
-const scheduledHandler = schedule('0 * * * *', handler)
+const scheduledHandler = schedule('0 3 * * *', handler)
 
 export { scheduledHandler as handler } 

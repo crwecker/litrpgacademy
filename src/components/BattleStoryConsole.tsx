@@ -169,40 +169,6 @@ export function BattleStoryConsole({
     }
   }
 
-  const getEntryIcon = (entryType: string) => {
-    switch (entryType) {
-      case 'BOSS_INTRODUCTION':
-        return 'Intro'
-      case 'BATTLE_ACTION':
-        return 'Battle'
-      case 'BOSS_DEFEAT':
-        return 'D'
-      case 'BOSS_RESPAWN':
-        return 'R'
-      case 'MILESTONE':
-        return 'M'
-      default:
-        return 'S'
-    }
-  }
-
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }
-
-  const getHpPercentage = (hp: number) => {
-    if (!storyData?.boss?.maxHp) return 100
-    return (hp / storyData.boss.maxHp) * 100
-  }
-
-  const getHpColor = (percentage: number) => {
-    if (percentage > 75) return '#10b981' // green
-    if (percentage > 50) return '#f59e0b' // yellow
-    if (percentage > 25) return '#f97316' // orange
-    return '#ef4444' // red
-  }
-
   if (!storyData) {
     return (
       <div

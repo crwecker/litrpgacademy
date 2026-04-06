@@ -26,6 +26,10 @@ export function AddBook() {
     tags: [],
     coverUrl: '',
     sourceUrl: '',
+    audiobookAsin: '',
+    paperbackIsbn: '',
+    hardbackIsbn: '',
+    ebookAsin: '',
     source: 'AMAZON',
     contentWarnings: [],
     rating: 0,
@@ -65,6 +69,10 @@ export function AddBook() {
     'tags', // Will be semicolon-separated
     'coverUrl',
     'sourceUrl',
+    'audiobookAsin',
+    'paperbackIsbn',
+    'hardbackIsbn',
+    'ebookAsin',
     'source', // AMAZON or ROYAL_ROAD
     'contentWarnings', // Will be semicolon-separated
     'rating',
@@ -268,6 +276,10 @@ export function AddBook() {
       tags: [],
       coverUrl: '',
       sourceUrl: '',
+      audiobookAsin: '',
+      paperbackIsbn: '',
+      hardbackIsbn: '',
+      ebookAsin: '',
       source: 'AMAZON',
       contentWarnings: [],
       rating: 0,
@@ -582,6 +594,81 @@ export function AddBook() {
                   placeholder='https://amazon.com/dp/... or https://royalroad.com/fiction/...'
                   required
                 />
+              </div>
+            </div>
+
+            {/* Amazon IDs */}
+            <div>
+              <h3 className='text-lg font-semibold mb-4 text-copper'>
+                Amazon Product IDs (Optional)
+              </h3>
+              <p className='text-light-gray text-sm mb-4'>
+                Enter Amazon product IDs to automatically generate affiliate links. We'll build the URLs with our affiliate tag.
+              </p>
+              <div className='grid md:grid-cols-2 gap-6'>
+                <div>
+                  <label className='block text-sm font-medium mb-2'>
+                    Audiobook ASIN
+                  </label>
+                  <input
+                    type='text'
+                    value={formData.audiobookAsin}
+                    onChange={e => handleInputChange('audiobookAsin', e.target.value)}
+                    className='w-full p-3 rounded bg-dark-blue border border-medium-gray focus:border-copper focus:ring-1 focus:ring-copper text-white'
+                    placeholder='e.g., B08XYZ123AB'
+                  />
+                  <p className='text-xs text-light-gray mt-1'>
+                    ASIN from Amazon/Audible product page
+                  </p>
+                </div>
+
+                <div>
+                  <label className='block text-sm font-medium mb-2'>
+                    Ebook ASIN
+                  </label>
+                  <input
+                    type='text'
+                    value={formData.ebookAsin}
+                    onChange={e => handleInputChange('ebookAsin', e.target.value)}
+                    className='w-full p-3 rounded bg-dark-blue border border-medium-gray focus:border-copper focus:ring-1 focus:ring-copper text-white'
+                    placeholder='e.g., B08ABC123XY'
+                  />
+                  <p className='text-xs text-light-gray mt-1'>
+                    ASIN for Kindle edition
+                  </p>
+                </div>
+
+                <div>
+                  <label className='block text-sm font-medium mb-2'>
+                    Paperback ISBN
+                  </label>
+                  <input
+                    type='text'
+                    value={formData.paperbackIsbn}
+                    onChange={e => handleInputChange('paperbackIsbn', e.target.value)}
+                    className='w-full p-3 rounded bg-dark-blue border border-medium-gray focus:border-copper focus:ring-1 focus:ring-copper text-white'
+                    placeholder='e.g., 1234567890'
+                  />
+                  <p className='text-xs text-light-gray mt-1'>
+                    ISBN-10 or ASIN for paperback
+                  </p>
+                </div>
+
+                <div>
+                  <label className='block text-sm font-medium mb-2'>
+                    Hardback ISBN
+                  </label>
+                  <input
+                    type='text'
+                    value={formData.hardbackIsbn}
+                    onChange={e => handleInputChange('hardbackIsbn', e.target.value)}
+                    className='w-full p-3 rounded bg-dark-blue border border-medium-gray focus:border-copper focus:ring-1 focus:ring-copper text-white'
+                    placeholder='e.g., 0987654321'
+                  />
+                  <p className='text-xs text-light-gray mt-1'>
+                    ISBN-10 or ASIN for hardcover
+                  </p>
+                </div>
               </div>
             </div>
 

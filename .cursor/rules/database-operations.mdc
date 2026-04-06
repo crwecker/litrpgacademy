@@ -45,5 +45,39 @@ const books = await prisma.book.findMany({
 })
 ```
 
+## Redis Caching (Upstash) — Neon Transfer Budget
+
+Neon's free tier has a 5GB/month network transfer limit. To stay under it, most read-heavy endpoints go through a Redis (Upstash) cache layer instead of querying Neon directly.
+
+### Cached endpoints (should NOT hit Neon on normal requests)
+- `getLitRPGBooks()` — filters cached books in-memory
+- `fetchBookDetails()` — checks cache first, DB fallback
+- `getAuthorBooks()` — filters cached books in-memory
+- `searchBooks()`, `getPopularTags()`, `getAllTags()` — use cache
+
+### Endpoints that still query Neon directly (necessary)
+- Community Favorites / Top Tier Books — require user tier joins
+- Book Reviews — user-specific data
+- Realm Battle Activities — real-time battle data
+- User Progress — user-specific activity data
+
+These are acceptable because the data is user-specific, frequently changing, or involves complex joins.
+
+### Cache configuration
+- **TTL:** 24 hours for books and tags (`lib/redis.ts`)
+- **Refresh:** `scheduled-cache-refresh` Netlify function runs daily at 3 AM UTC
+- **Population:** `scheduled-populate` runs daily at 2 AM UTC (scrapes Royal Road)
+- **Fallback:** `getCachedBooksWithFallback()` in `lib/cache-manager.ts` lazy-loads from Neon on cache miss
+
+### Rules for new endpoints
+- Any new book-listing endpoint should read from `getCachedBooksWithFallback()` and filter in-memory, NOT query Prisma directly
+- Only add direct DB queries for user-specific or real-time data
+- If cache isn't populated yet, the fallback functions handle it — don't add separate "seed" logic
+
+### Monitoring
+- Netlify Function logs should show `"Fetching LitRPG books from cache..."`, `"Found book in cache:"`, etc.
+- Upstash dashboard: verify cache keys exist (`books:all:meta`, `books:all:chunk:0`, etc.)
+- Neon dashboard: watch monthly transfer — should stay well under 5GB
+
 ## Running Population Scripts
 Execute with: `npx tsx scripts/script-name.ts`

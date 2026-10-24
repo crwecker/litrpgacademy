@@ -65,9 +65,7 @@ function bookJsonLd(book: BookDetail) {
     image: book.coverUrl ?? undefined,
     genre: book.tags,
     url: book.sourceUrl,
-    ...(book.rating && book.ratingsCount
-      ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: book.rating, bestRating: 5, ratingCount: book.ratingsCount } }
-      : {}),
+    // No aggregateRating: Royal Road's ratings aren't ours to mark up. Add one from community tiers later.
   }
 }
 

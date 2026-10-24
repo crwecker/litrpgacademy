@@ -53,7 +53,8 @@ const TIER_SCORE = Prisma.sql`CASE tier
 
 const ORDER_BY: Record<SortKey, Prisma.Sql> = {
   popular: Prisma.sql`l.followers DESC NULLS LAST`,
-  rating: Prisma.sql`(l.ratings_count >= 50) DESC, l.rating DESC NULLS LAST`,
+  // Books without Royal Road stats (Amazon) have NULL here and must not float to the top.
+  rating: Prisma.sql`COALESCE(l.ratings_count >= 50, false) DESC, l.rating DESC NULLS LAST`,
   community: Prisma.sql`community_score DESC, l.followers DESC NULLS LAST`,
   pages: Prisma.sql`l.pages DESC NULLS LAST`,
   title: Prisma.sql`b.title ASC`,

@@ -4,3 +4,6 @@
 
 [build.environment]
   NODE_VERSION = "24"
+  # The site sets NODE_ENV=production for builds, which makes npm skip devDependencies
+  # (Tailwind, TypeScript, Prisma CLI) that the build needs.
+  NPM_FLAGS = "--include=dev"

@@ -21,8 +21,9 @@ npm run build
 
 Requires Node 24 (see `.nvmrc`) and a `.env` with `DATABASE_URL` (Neon pooled connection string).
 
-**The database is shared with the live site.** Never run `prisma migrate dev`, `db push`, or `migrate reset`
-against it. Use a Neon branch for schema work.
+Local `DATABASE_URL` points at the Neon branch `rebuild-dev`, a copy of production made 2026-10-24. Schema work
+happens there. `PROD_DATABASE_URL` is production, which the live site shares: never run `prisma migrate dev`,
+`db push`, or `migrate reset` against it.
 
 ## Layout
 

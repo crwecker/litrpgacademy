@@ -10,6 +10,20 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'm.media-amazon.com', pathname: '/images/**' },
     ],
   },
+  // Routes from the 2025 app that no longer exist.
+  async redirects() {
+    return [
+      { source: '/community-favorites', destination: '/books?sort=community', permanent: true },
+      { source: '/academy', destination: '/', permanent: true },
+      { source: '/add-book', destination: '/books', permanent: false },
+      { source: '/my-tiers', destination: '/me', permanent: false },
+      { source: '/my-reviews', destination: '/me', permanent: false },
+      { source: '/signup', destination: '/signin', permanent: false },
+      { source: '/auth', destination: '/signin', permanent: false },
+      // Old magic links stored unhashed tokens; send them to request a new one.
+      { source: '/verify', destination: '/signin?error=expired', permanent: false },
+    ]
+  },
   turbopack: {
     rules: {
       '*.css': {

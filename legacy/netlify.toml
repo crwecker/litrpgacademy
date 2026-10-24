@@ -1,0 +1,46 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["netlify/functions/generated/prisma/**", "prisma/**"]
+  external_node_modules = ["@prisma/client"]
+
+# Scheduled function for nightly database population
+[functions."scheduled-populate"]
+  schedule = "0 2 * * *"  # Run at 2 AM UTC daily
+
+# Scheduled function for cache refresh
+[functions."scheduled-cache-refresh"]
+  schedule = "0 3 * * *"  # Run daily at 3 AM UTC
+
+[dev]
+  command = "npm run frontend"
+  port = 3000
+  targetPort = 5173
+  framework = "#custom"
+  publish = "dist"
+  https = false
+
+# Handle redirects for SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Add API redirects
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+# Add Auth redirects
+[[redirects]]
+  from = "/auth/*"
+  to = "/.netlify/functions/auth/:splat"
+  status = 200 

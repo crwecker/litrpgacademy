@@ -7,3 +7,7 @@
   # The site sets NODE_ENV=production for builds, which makes npm skip devDependencies
   # (Tailwind, TypeScript, Prisma CLI) that the build needs.
   NPM_FLAGS = "--include=dev"
+
+# The site predates its Next.js app, so Netlify doesn't auto-install the runtime in CI.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

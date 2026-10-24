@@ -1,7 +1,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { REALMS } from '@/lib/realms'
 import { WRITINATOR_URL } from '@/lib/site'
+import { UserNav } from './UserNav'
 
 export function SiteHeader() {
   return (
@@ -20,7 +22,7 @@ export function SiteHeader() {
             <Link
               key={realm.slug}
               href={`/realm/${realm.slug}`}
-              className='rounded-md px-3 py-1.5 hover:bg-panel hover:text-parchment'
+              className='rounded-md px-3 py-1.5 whitespace-nowrap hover:bg-panel hover:text-parchment'
             >
               {realm.name}
             </Link>
@@ -42,12 +44,15 @@ export function SiteHeader() {
 
         <a
           href={WRITINATOR_URL}
-          className='shrink-0 text-sm text-copper hover:text-copper-hi max-lg:hidden'
+          className='shrink-0 text-sm text-copper hover:text-copper-hi max-xl:hidden'
           target='_blank'
           rel='noopener'
         >
           Write LitRPG ↗
         </a>
+        <Suspense fallback={<span className='w-16 shrink-0' />}>
+          <UserNav />
+        </Suspense>
       </div>
       <nav className='no-scrollbar flex gap-1 overflow-x-auto px-4 pb-2 text-sm text-mist md:hidden'>
         <Link href='/books' className='shrink-0 rounded-md bg-panel px-3 py-1'>

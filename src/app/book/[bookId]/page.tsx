@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { BookShelf } from '@/components/BookCard'
 import { BookCover } from '@/components/BookCover'
+import { ShelfPanel } from '@/components/ShelfPanel'
 import { TierBreakdown } from '@/components/TierBreakdown'
 import { getBook, getSimilarBooks, getTopBookIds, type BookDetail } from '@/lib/books'
 import { realmsForTags } from '@/lib/realms'
@@ -87,6 +88,11 @@ async function BookContent({ params }: { params: PageProps<'/book/[bookId]'>['pa
           <div className='mt-4 flex justify-center md:justify-start'>
             <SourceLink book={book} />
           </div>
+          <div className='mt-4'>
+            <Suspense fallback={<div className='h-40 animate-pulse rounded-lg bg-panel/60' />}>
+              <ShelfPanel bookId={book.id} />
+            </Suspense>
+          </div>
         </div>
 
         <div>
@@ -156,7 +162,7 @@ async function BookContent({ params }: { params: PageProps<'/book/[bookId]'>['pa
               <p className='mt-2 text-sm text-dim'>
                 {book.readerCount > 0
                   ? `${book.readerCount} ${book.readerCount === 1 ? 'reader has' : 'readers have'} this on their shelf.`
-                  : 'No one has ranked this yet. Tier lists are coming soon.'}
+                  : 'No one has ranked this yet. Be the first.'}
               </p>
             </div>
             <div>

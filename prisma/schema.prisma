@@ -28,6 +28,7 @@ model Book {
   bookReviews     BookReview[]
   bookContributors BookContributor[]
   battleActivities BattleActivity[]
+  readingLogs     ReadingLog[]
 }
 
 model BookStats {
@@ -59,6 +60,7 @@ enum Source {
 model User {
   id            String      @id @default(cuid())
   email         String      @unique
+  username      String?     @unique
   firstName     String
   lastName      String
   createdAt     DateTime    @default(now())
@@ -67,6 +69,7 @@ model User {
   bookTiers     BookTier[]
   bookReviews   BookReview[]
   battleActivities BattleActivity[]
+  readingLogs   ReadingLog[]
 }
 
 model MagicLink {
@@ -217,4 +220,21 @@ enum StoryEntryType {
   BOSS_DEFEAT
   BOSS_RESPAWN
   MILESTONE
+}
+
+// A diary entry: a dated reading event, Letterboxd style. BookTier holds the current
+// status and tier; this keeps the history.
+model ReadingLog {
+  id        String        @id @default(cuid())
+  userId    String
+  bookId    String
+  status    ReadingStatus
+  tier      TierLevel?
+  loggedOn  DateTime      @db.Date
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id])
+  book      Book          @relation(fields: [bookId], references: [id])
+
+  @@index([userId, loggedOn])
+  @@index([bookId])
 }

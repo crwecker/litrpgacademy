@@ -10,9 +10,9 @@ Game elements (realms, bosses) are flavor that rewards ranking and reviewing. Th
 
 ## Roadmap
 
-1. **Discovery core** (done on the `rebuild` branch): server-rendered book pages, browse/search, realm hubs,
+1. **Discovery core** (live 2026-10-24): server-rendered book pages, browse/search, realm hubs,
    OG tags, sitemap. Reads the existing Neon database without migrations.
-2. **Accounts and ranking**: magic-link sign-in, the log/diary (finished on a date, tier, optional review),
+2. **Accounts and ranking** (live 2026-10-24; drag-and-drop tier editing still to do): magic-link sign-in, the log/diary (finished on a date, tier, optional review),
    want-to-read shelf, tier lists, and a "top 4" on the profile (SSS + SS = 4 slots). Carry over the existing users' data.
 3. **Shareable tier lists**: public URL with a generated OG image, "Copy as Markdown" for Reddit, PNG download,
    and "rank this list yourself."
@@ -51,6 +51,6 @@ Ideas from the original PRD, `Realms.md`, the old tiers README, and the commit h
 
 ## Legacy app
 
-The 2025 Vite + Netlify Functions app lives in `legacy/` on this branch for reference while porting. The live site
-still runs it from `main`. Its battle and add-book endpoints accept unauthenticated writes, and `JWT_SECRET` falls back
-to a hardcoded default. Fix or retire them before or at cutover.
+The 2025 Vite + Netlify Functions app lives in `legacy/` for reference while porting. It was retired at cutover on
+2026-10-24, which also removed its unauthenticated battle and add-book endpoints. Neon branch `pre-cutover-2026-10-24`
+holds the production database as it was just before the cutover migration.

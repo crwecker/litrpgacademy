@@ -1,0 +1,28 @@
+# One-off: the Netlify free-plan usage limit paused the site (and its builds) until the usage
+# period resets on Nov 1 2026 at 00:00 Pacific (07:00 UTC). This triggers a production build of
+# `main` right after the reset so the function-light version goes live before crawlers burn the
+# new allowance. Two later runs retry in case the unpause lags. Delete this file afterward.
+name: Post-reset Netlify deploy
+
+on:
+  schedule:
+    - cron: '5 7 1 11 *'
+    - cron: '45 7 1 11 *'
+    - cron: '0 9 1 11 *'
+  workflow_dispatch:
+
+jobs:
+  trigger-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only run in 2026
+        id: guard
+        run: |
+          if [ "$(date -u +%Y)" = "2026" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Trigger Netlify build hook
+        if: steps.guard.outputs.run == 'true'
+        env:
+          HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
+        run: curl --fail --silent --show-error -X POST -d '{}' "$HOOK"

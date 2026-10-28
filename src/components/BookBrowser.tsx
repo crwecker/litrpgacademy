@@ -1,12 +1,18 @@
 import Link from 'next/link'
 import { PAGE_SIZE, SORTS, searchBooks, type BookQuery, type SortKey } from '@/lib/books'
+import { getRealm } from '@/lib/realms'
 import { BookGrid } from './BookCard'
+
+// Every filter, sort, and page link goes to /search, the one dynamic browse route. /books and
+// the realm pages render a fixed default view so they can be served from the CDN.
+export const SEARCH_PATH = '/search'
 
 export interface BrowseParams {
   q?: string
   tag?: string[]
   sort?: SortKey
   page?: number
+  realm?: string
 }
 
 type SearchParamValue = string | string[] | undefined
@@ -21,31 +27,33 @@ export function parseBrowseParams(raw: Record<string, SearchParamValue>): Browse
     tag: tag.slice(0, 5),
     sort: sort && sort in SORTS ? (sort as SortKey) : undefined,
     page: Number.isInteger(page) && page > 1 ? Math.min(page, 400) : undefined,
+    realm: getRealm(first(raw.realm) ?? '')?.slug,
   }
 }
 
-function browseHref(basePath: string, params: BrowseParams): string {
+function browseHref(params: BrowseParams): string {
   const search = new URLSearchParams()
+  if (params.realm) search.set('realm', params.realm)
   if (params.q) search.set('q', params.q)
   for (const tag of params.tag ?? []) search.append('tag', tag)
   if (params.sort) search.set('sort', params.sort)
   if (params.page && params.page > 1) search.set('page', String(params.page))
-  const query = search.toString()
-  return query ? `${basePath}?${query}` : basePath
+  return `${SEARCH_PATH}?${search.toString()}`
 }
 
+// Facet links: crawlers shouldn't follow them, and prefetching would spend a server render each.
+const facetLink = { rel: 'nofollow', prefetch: false } as const
+
 interface BookBrowserProps {
-  basePath: string
   params: BrowseParams
-  anyTags?: string[]
   suggestedTags: string[]
 }
 
-export async function BookBrowser({ basePath, params, anyTags, suggestedTags }: BookBrowserProps) {
+export async function BookBrowser({ params, suggestedTags }: BookBrowserProps) {
   const query: BookQuery = {
     q: params.q,
     tags: params.tag,
-    anyTags,
+    anyTags: params.realm ? getRealm(params.realm)?.tags : undefined,
     sort: params.sort,
     page: params.page,
   }
@@ -62,7 +70,8 @@ export async function BookBrowser({ basePath, params, anyTags, suggestedTags }: 
         {(Object.keys(SORTS) as SortKey[]).map(sort => (
           <Link
             key={sort}
-            href={browseHref(basePath, { ...params, sort, page: undefined })}
+            {...facetLink}
+            href={browseHref({ ...params, sort, page: undefined })}
             className={`rounded-full px-3 py-1 text-sm ${
               sort === activeSort ? 'bg-copper text-night' : 'bg-panel text-mist hover:text-parchment'
             }`}
@@ -77,7 +86,8 @@ export async function BookBrowser({ basePath, params, anyTags, suggestedTags }: 
         {activeTags.map(tag => (
           <Link
             key={tag}
-            href={browseHref(basePath, { ...params, tag: activeTags.filter(t => t !== tag), page: undefined })}
+            {...facetLink}
+            href={browseHref({ ...params, tag: activeTags.filter(t => t !== tag), page: undefined })}
             className='rounded-full border border-copper bg-copper/15 px-3 py-1 text-sm text-copper-hi'
             aria-label={`Remove tag ${tag}`}
           >
@@ -89,7 +99,8 @@ export async function BookBrowser({ basePath, params, anyTags, suggestedTags }: 
           .map(tag => (
             <Link
               key={tag}
-              href={browseHref(basePath, { ...params, tag: [...activeTags, tag], page: undefined })}
+              {...facetLink}
+            href={browseHref({ ...params, tag: [...activeTags, tag], page: undefined })}
               className='rounded-full border border-line px-3 py-1 text-sm text-mist hover:border-copper hover:text-parchment'
             >
               {tag}
@@ -118,7 +129,8 @@ export async function BookBrowser({ basePath, params, anyTags, suggestedTags }: 
       {pageCount > 1 && (
         <nav className='mt-10 flex items-center justify-center gap-3 text-sm' aria-label='Pagination'>
           {page > 1 && (
-            <Link href={browseHref(basePath, { ...params, page: page - 1 })} className='rounded-md bg-panel px-4 py-2 hover:bg-panel-hi'>
+            <Link {...facetLink}
+            href={browseHref({ ...params, page: page - 1 })} className='rounded-md bg-panel px-4 py-2 hover:bg-panel-hi'>
               ← Previous
             </Link>
           )}
@@ -126,7 +138,8 @@ export async function BookBrowser({ basePath, params, anyTags, suggestedTags }: 
             Page {page} of {pageCount}
           </span>
           {page < pageCount && (
-            <Link href={browseHref(basePath, { ...params, page: page + 1 })} className='rounded-md bg-panel px-4 py-2 hover:bg-panel-hi'>
+            <Link {...facetLink}
+            href={browseHref({ ...params, page: page + 1 })} className='rounded-md bg-panel px-4 py-2 hover:bg-panel-hi'>
               Next →
             </Link>
           )}

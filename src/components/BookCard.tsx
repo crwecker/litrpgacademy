@@ -40,7 +40,7 @@ export function BookShelf({ title, href, books }: { title: string; href?: string
       <div className='mb-4 flex items-baseline justify-between'>
         <h2 className='font-serif text-xl font-bold'>{title}</h2>
         {href && (
-          <Link href={href} className='text-sm text-copper hover:text-copper-hi'>
+          <Link href={href} prefetch={href.startsWith('/search') ? false : undefined} className='text-sm text-copper hover:text-copper-hi'>
             See all →
           </Link>
         )}

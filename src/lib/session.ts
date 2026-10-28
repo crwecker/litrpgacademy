@@ -2,6 +2,7 @@ import 'server-only'
 import { jwtVerify, SignJWT } from 'jose'
 import { cookies } from 'next/headers'
 import { connection } from 'next/server'
+import { USER_HINT_COOKIE, encodeUserHint, type UserHint } from './user-hint'
 
 const COOKIE_NAME = 'lrpg_session'
 const SESSION_DAYS = 30
@@ -12,20 +13,24 @@ function secretKey(): Uint8Array {
   return new TextEncoder().encode(secret)
 }
 
-export async function createSession(userId: string): Promise<void> {
+// The httpOnly session is the only thing trusted for auth. The readable hint cookie just lets
+// static pages show the signed-in header in the browser without a server render.
+export async function createSession(userId: string, hint: UserHint): Promise<void> {
   const token = await new SignJWT({})
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(userId)
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DAYS}d`)
     .sign(secretKey())
-  ;(await cookies()).set(COOKIE_NAME, token, {
-    httpOnly: true,
+  const options = {
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     path: '/',
     maxAge: SESSION_DAYS * 24 * 60 * 60,
-  })
+  }
+  const store = await cookies()
+  store.set(COOKIE_NAME, token, { ...options, httpOnly: true })
+  store.set(USER_HINT_COOKIE, encodeUserHint(hint), options)
 }
 
 export async function getSessionUserId(): Promise<string | null> {
@@ -42,5 +47,7 @@ export async function getSessionUserId(): Promise<string | null> {
 }
 
 export async function deleteSession(): Promise<void> {
-  ;(await cookies()).delete(COOKIE_NAME)
+  const store = await cookies()
+  store.delete(COOKIE_NAME)
+  store.delete(USER_HINT_COOKIE)
 }

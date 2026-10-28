@@ -3,6 +3,8 @@ import { cacheLife, cacheTag } from 'next/cache'
 import { Prisma } from '@/generated/prisma/client'
 import { db } from './db'
 
+// Royal Road stats are frozen (the scraper is blocked), so catalog data can be cached for long
+// stretches. Community data refreshes immediately through the `book:<id>` tag.
 export const PAGE_SIZE = 24
 
 export const SORTS = {
@@ -90,10 +92,11 @@ function toSummary(row: SummaryRow): BookSummary {
 
 export async function searchBooks(query: BookQuery): Promise<{ books: BookSummary[]; total: number }> {
   'use cache'
-  cacheLife('hours')
+  cacheLife('weeks')
   cacheTag('books')
 
   const { q, tags = [], anyTags = [], sort = 'popular', page = 1 } = query
+  if (sort === 'community') cacheTag('community')
   const conditions: Prisma.Sql[] = []
   if (q && q.trim()) {
     const pattern = `%${q.trim()}%`
@@ -123,15 +126,15 @@ export async function searchBooks(query: BookQuery): Promise<{ books: BookSummar
 // Books the community has ranked, best first. Falls back to nothing when no one has ranked yet.
 export async function getCommunityFavorites(limit = 12): Promise<BookSummary[]> {
   'use cache'
-  cacheLife('hours')
-  cacheTag('books')
+  cacheLife('days')
+  cacheTag('books', 'community')
   const { books } = await searchBooks({ sort: 'community' })
   return books.filter(book => book.communityScore > 0).slice(0, limit)
 }
 
 export async function getTopTags(limit = 24): Promise<{ tag: string; count: number }[]> {
   'use cache'
-  cacheLife('days')
+  cacheLife('max')
   cacheTag('books')
   return db.$queryRaw<{ tag: string; count: number }[]>`
     SELECT t AS tag, COUNT(*)::int AS count
@@ -162,7 +165,7 @@ export interface BookDetail extends BookSummary {
 
 export async function getBook(id: string): Promise<BookDetail | null> {
   'use cache'
-  cacheLife('hours')
+  cacheLife('max')
   cacheTag('books', `book:${id}`)
 
   const book = await db.book.findUnique({
@@ -239,7 +242,7 @@ const GENERIC_TAGS = ['Fantasy', 'Adventure', 'Action', 'Magic', 'Male Lead', 'F
 
 export async function getSimilarBooks(id: string, tags: string[], limit = 8): Promise<BookSummary[]> {
   'use cache'
-  cacheLife('days')
+  cacheLife('max')
   cacheTag('books')
 
   const specific = tags.filter(tag => !GENERIC_TAGS.includes(tag))
@@ -261,7 +264,7 @@ export async function getSimilarBooks(id: string, tags: string[], limit = 8): Pr
 // Highest-followed book ids, prerendered at build time.
 export async function getTopBookIds(limit: number): Promise<string[]> {
   'use cache'
-  cacheLife('days')
+  cacheLife('weeks')
   const rows = await db.$queryRaw<{ id: string }[]>`
     WITH l AS (${LATEST_STATS})
     SELECT b.id FROM "Book" b JOIN l ON l."bookId" = b.id
@@ -271,6 +274,6 @@ export async function getTopBookIds(limit: number): Promise<string[]> {
 
 export async function getAllBookIds(): Promise<{ id: string; updatedAt: Date }[]> {
   'use cache'
-  cacheLife('days')
+  cacheLife('weeks')
   return db.book.findMany({ select: { id: true, updatedAt: true } })
 }

@@ -55,10 +55,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <BookShelf title='Community favorites' href='/books?sort=community' books={favorites} />
+      <BookShelf title='Community favorites' href='/search?sort=community' books={favorites} />
       <BookShelf title='Most followed on Royal Road' href='/books' books={popular.books} />
       <BookShelf title='Top LitRPG & GameLit' href='/realm/gamelit' books={gamelit.books} />
-      <BookShelf title='Highest rated' href='/books?sort=rating' books={topRated.books} />
+      <BookShelf title='Highest rated' href='/search?sort=rating' books={topRated.books} />
 
       <section className='mt-16 grid items-center gap-6 overflow-hidden rounded-2xl border border-line bg-panel/60 sm:grid-cols-[1fr_280px]'>
         <div className='p-6 sm:p-8'>

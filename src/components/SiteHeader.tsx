@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Suspense } from 'react'
 import { REALMS } from '@/lib/realms'
 import { WRITINATOR_URL } from '@/lib/site'
 import { UserNav } from './UserNav'
@@ -29,7 +28,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <form action='/books' className='ml-auto w-full max-w-xs'>
+        <form action='/search' className='ml-auto w-full max-w-xs'>
           <label className='sr-only' htmlFor='site-search'>
             Search books
           </label>
@@ -50,9 +49,7 @@ export function SiteHeader() {
         >
           Write LitRPG ↗
         </a>
-        <Suspense fallback={<span className='w-16 shrink-0' />}>
-          <UserNav />
-        </Suspense>
+        <UserNav />
       </div>
       <nav className='no-scrollbar flex gap-1 overflow-x-auto px-4 pb-2 text-sm text-mist md:hidden'>
         <Link href='/books' className='shrink-0 rounded-md bg-panel px-3 py-1'>

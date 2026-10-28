@@ -13,7 +13,12 @@ const nextConfig: NextConfig = {
   // Routes from the 2025 app that no longer exist.
   async redirects() {
     return [
-      { source: '/community-favorites', destination: '/books?sort=community', permanent: true },
+      { source: '/community-favorites', destination: '/search?sort=community', permanent: true },
+      // Filtered browse URLs moved to /search so /books and realm pages can stay static.
+      ...['q', 'tag', 'sort', 'page'].flatMap(key => [
+        { source: '/books', has: [{ type: 'query' as const, key }], destination: '/search', permanent: true },
+        { source: '/realm/:realm', has: [{ type: 'query' as const, key }], destination: '/search?realm=:realm', permanent: true },
+      ]),
       { source: '/academy', destination: '/', permanent: true },
       { source: '/add-book', destination: '/books', permanent: false },
       { source: '/my-tiers', destination: '/me', permanent: false },

@@ -1,15 +1,21 @@
 'use server'
 
-import { updateTag } from 'next/cache'
+import { revalidateTag, updateTag } from 'next/cache'
 import { TIERS, type Tier } from '@/lib/books'
 import { db } from '@/lib/db'
 import { getSessionUserId } from '@/lib/session'
-import { TIER_LIMITS } from '@/lib/shelf'
+import { getShelfState, TIER_LIMITS, type ShelfState } from '@/lib/shelf'
 import type { ReadingStatus } from '@/generated/prisma/client'
 
 export type ShelfResult = { ok: true } | { ok: false; error: string }
 
 const STATUSES: ReadingStatus[] = ['WANT_TO_READ', 'READING', 'FINISHED']
+
+// Null when the session is missing or expired.
+export async function getMyShelfState(bookId: string): Promise<ShelfState | null> {
+  const userId = await getSessionUserId()
+  return userId ? getShelfState(userId, bookId) : null
+}
 
 async function requireUser(): Promise<string> {
   const userId = await getSessionUserId()
@@ -83,6 +89,8 @@ export async function setTier(bookId: string, tier: Tier | null): Promise<ShelfR
   })
   if (tier) await logReading(userId, bookId, status, tier)
   refresh(userId, bookId)
+  // Community-ranked lists refresh in the background rather than on every ranking.
+  revalidateTag('community', 'max')
   return { ok: true }
 }
 

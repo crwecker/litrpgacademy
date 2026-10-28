@@ -49,7 +49,7 @@ function toShelfBook(book: { id: string; title: string; authorName: string; cove
 
 export async function getProfile(username: string): Promise<Profile | null> {
   'use cache'
-  cacheLife('hours')
+  cacheLife('max')
 
   const user = await db.user.findUnique({
     where: { username },

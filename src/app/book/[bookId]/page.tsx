@@ -89,9 +89,7 @@ async function BookContent({ params }: { params: PageProps<'/book/[bookId]'>['pa
             <SourceLink book={book} />
           </div>
           <div className='mt-4'>
-            <Suspense fallback={<div className='h-40 animate-pulse rounded-lg bg-panel/60' />}>
-              <ShelfPanel bookId={book.id} />
-            </Suspense>
+            <ShelfPanel bookId={book.id} />
           </div>
         </div>
 
@@ -118,7 +116,7 @@ async function BookContent({ params }: { params: PageProps<'/book/[bookId]'>['pa
                 {book.authorName}
               </a>
             ) : (
-              <Link href={`/books?q=${encodeURIComponent(book.authorName)}`} className='text-parchment hover:text-copper-hi'>
+              <Link href={`/search?q=${encodeURIComponent(book.authorName)}`} rel='nofollow' prefetch={false} className='text-parchment hover:text-copper-hi'>
                 {book.authorName}
               </Link>
             )}
@@ -141,7 +139,9 @@ async function BookContent({ params }: { params: PageProps<'/book/[bookId]'>['pa
             {book.tags.map(tag => (
               <Link
                 key={tag}
-                href={`/books?tag=${encodeURIComponent(tag)}`}
+                href={`/search?tag=${encodeURIComponent(tag)}`}
+                rel='nofollow'
+                prefetch={false}
                 className='rounded-full border border-line px-3 py-1 text-sm text-mist hover:border-copper hover:text-parchment'
               >
                 {tag}

@@ -10,16 +10,19 @@ export interface CurrentUser {
   username: string
 }
 
-// Reads the session cookie, so callers must sit behind a <Suspense> boundary.
-export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
-  const userId = await getSessionUserId()
-  if (!userId) return null
+export async function getUserForSession(userId: string): Promise<CurrentUser | null> {
   const user = await db.user.findUnique({
     where: { id: userId },
     select: { id: true, firstName: true, username: true },
   })
   if (!user) return null
   return { id: user.id, firstName: user.firstName, username: user.username ?? (await assignUsername(user.id, user.firstName)) }
+}
+
+// Reads the session cookie, so callers must sit behind a <Suspense> boundary.
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+  const userId = await getSessionUserId()
+  return userId ? getUserForSession(userId) : null
 })
 
 export function slugifyName(name: string): string {

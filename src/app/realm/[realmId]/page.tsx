@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { Suspense } from 'react'
-import { BookBrowser, BookGridSkeleton, parseBrowseParams } from '@/components/BookBrowser'
+import { BookBrowser } from '@/components/BookBrowser'
 import { REALMS, getRealm } from '@/lib/realms'
 
 export function generateStaticParams() {
@@ -18,20 +17,6 @@ export async function generateMetadata({ params }: PageProps<'/realm/[realmId]'>
     alternates: { canonical: `/realm/${realm.slug}` },
     openGraph: { images: [{ url: realm.image, width: 1024, height: 1024 }] },
   }
-}
-
-async function RealmBooks({ realmId, searchParams }: { realmId: string; searchParams: PageProps<'/realm/[realmId]'>['searchParams'] }) {
-  const realm = getRealm(realmId)
-  if (!realm) notFound()
-  const raw = await searchParams
-  return (
-    <BookBrowser
-      basePath={`/realm/${realm.slug}`}
-      params={parseBrowseParams(raw)}
-      anyTags={realm.tags}
-      suggestedTags={realm.tags}
-    />
-  )
 }
 
 export default async function RealmPage(props: PageProps<'/realm/[realmId]'>) {
@@ -71,9 +56,7 @@ export default async function RealmPage(props: PageProps<'/realm/[realmId]'>) {
         </div>
       </section>
       <div className='mt-8'>
-        <Suspense fallback={<BookGridSkeleton />}>
-          <RealmBooks realmId={realm.slug} searchParams={props.searchParams} />
-        </Suspense>
+        <BookBrowser params={{ realm: realm.slug }} suggestedTags={realm.tags} />
       </div>
     </div>
   )

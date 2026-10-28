@@ -1,13 +1,15 @@
+'use client'
+
 import Link from 'next/link'
 import { signOut } from '@/app/signin/actions'
-import { getCurrentUser } from '@/lib/auth'
+import { useUserHint } from './useUserHint'
 
-// Reads the session, so render it inside <Suspense>.
-export async function UserNav() {
-  const user = await getCurrentUser()
+// Client-rendered from the hint cookie so every page can stay static for signed-out visitors.
+export function UserNav() {
+  const user = useUserHint()
   if (!user) {
     return (
-      <Link href='/signin' className='shrink-0 rounded-md border border-line px-3 py-1.5 text-sm hover:border-copper'>
+      <Link href='/signin' prefetch={false} className='shrink-0 rounded-md border border-line px-3 py-1.5 text-sm hover:border-copper'>
         Sign in
       </Link>
     )

@@ -2,6 +2,9 @@
 # period resets on Nov 1 2026 at 00:00 Pacific (07:00 UTC). This triggers a production build of
 # `main` right after the reset so the function-light version goes live before crawlers burn the
 # new allowance. Two later runs retry in case the unpause lags. Delete this file afterward.
+#
+# While the site is paused the build hook returns 404, so if the hook fails this falls back to
+# pushing an empty commit, which Netlify also builds from.
 name: Post-reset Netlify deploy
 
 on:
@@ -10,6 +13,9 @@ on:
     - cron: '45 7 1 11 *'
     - cron: '0 9 1 11 *'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   trigger-build:
@@ -22,7 +28,19 @@ jobs:
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Trigger Netlify build hook
+        id: hook
         if: steps.guard.outputs.run == 'true'
+        continue-on-error: true
         env:
           HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
         run: curl --fail --silent --show-error -X POST -d '{}' "$HOOK"
+      - name: Fall back to an empty commit
+        if: steps.guard.outputs.run == 'true' && steps.hook.outcome == 'failure'
+        uses: actions/checkout@v4
+      - name: Push empty commit
+        if: steps.guard.outputs.run == 'true' && steps.hook.outcome == 'failure'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit --allow-empty -m 'Trigger Netlify build after usage reset'
+          git push
